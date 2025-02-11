@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Football Fixture Generator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      width: 80%;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #fff;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+
+    label {
+      font-size: 1.2em;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    #fixtures {
+      margin-top: 20px;
+      font-size: 1.1em;
+    }
+
+    .round {
+      margin-bottom: 20px;
+    }
+
+    .match {
+      font-size: 1.2em;
+      margin: 5px 0;
+    }
+
+    #team-list {
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    #team-list li {
+      padding: 5px;
+      cursor: pointer;
+    }
+
+    #team-list li:hover {
+      background-color: #ddd;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Football Fixture Generator</h1>
+    <label for="teams">Enter Teams (select or type to add):</label>
+    <input type="text" id="team-input" placeholder="Enter team name">
+    <button onclick="addTeam()">Add Team</button>
+
+    <ul id="team-list"></ul>
+
+    <label for="tournament-type">Select Tournament Type:</label>
+    <select id="tournament-type">
+      <option value="league">League</option>
+      <option value="top-8">Top 8</option>
+      <option value="knockout">Knockout</option>
+      <option value="round-robin">Round Robin</option>
+      <option value="friendly">Friendly Matches</option>
+    </select>
+
+    <button onclick="generateFixtures()">Generate Fixtures</button>
+
+    <div id="fixtures"></div>
+  </div>
+
+  <script>
+    let teams = [];
+
+    function addTeam() {
+      const teamInput = document.getElementById('team-input');
+      const teamName = teamInput.value.trim();
+
+      if (teamName && !teams.includes(teamName)) {
+        teams.push(teamName);
+        const teamList = document.getElementById('team-list');
+        const listItem = document.createElement('li');
+        listItem.textContent = teamName;
+        teamList.appendChild(listItem);
+      }
+
+      teamInput.value = '';
+    }
+
+    function generateFixtures() {
+      if (teams.length < 2) {
+        alert('Please enter at least two teams!');
+        return;
+      }
+
+      const tournamentType = document.getElementById('tournament-type').value;
+
+      // If odd number of teams, add a dummy team for bye
+      if (teams.length % 2 !== 0 && tournamentType !== 'knockout') {
+        teams.push('Bye');
+      }
+
+      let fixtures = [];
+      if (tournamentType === 'league' || tournamentType === 'round-robin') {
+        fixtures = generateRoundRobinFixtures();
+      } else if (tournamentType === 'top-8') {
+        fixtures = generateTop8Fixtures();
+      } else if (tournamentType === 'knockout') {
+        fixtures = generateKnockoutFixtures();
+      } else if (tournamentType === 'friendly') {
+        fixtures = generateFriendlyFixtures();
+      }
+
+      // Display fixtures
+      const fixturesContainer = document.getElementById('fixtures');
+      fixturesContainer.innerHTML = '';
+      fixtures.forEach((roundMatches, index) => {
+        const roundDiv = document.createElement('div');
+        roundDiv.classList.add('round');
+        const roundTitle = document.createElement('h2');
+        roundTitle.innerText = `Round ${index + 1}`;
+        roundDiv.appendChild(roundTitle);
+        roundMatches.forEach(match => {
+          const matchDiv = document.createElement('div');
+          matchDiv.classList.add('match');
+          matchDiv.innerText = match;
+          roundDiv.appendChild(matchDiv);
+        });
+        fixturesContainer.appendChild(roundDiv);
+      });
+    }
+
+    function generateRoundRobinFixtures() {
+      const rounds = teams.length - 1;
+      const half = teams.length / 2;
+
+      let fixtures = [];
+      for (let round = 0; round < rounds; round++) {
+        let roundMatches = [];
+        for (let i = 0; i < half; i++) {
+          const home = teams[i];
+          const away = teams[teams.length - i - 1];
+          roundMatches.push(`${home} vs ${away}`);
+        }
+        fixtures.push(roundMatches);
+        // Rotate teams for the next round
+        teams.splice(1, 0, teams.pop());
+      }
+
+      return fixtures;
+    }
+
+    function generateTop8Fixtures() {
+      // Top 8 generates fixed matches
+      const fixtures = [
+        ['1st vs 8th', '2nd vs 7th', '3rd vs 6th', '4th vs 5th']
+      ];
+      return fixtures;
+    }
+
+    function generateKnockoutFixtures() {
+      const fixtures = [];
+      for (let i = 0; i < teams.length; i += 2) {
+        if (teams[i] && teams[i + 1]) {
+          fixtures.push([`${teams[i]} vs ${teams[i + 1]}`]);
+        }
+      }
+      return fixtures;
+    }
+
+    function generateFriendlyFixtures() {
+      const fixtures = [];
+      for (let i = 0; i < teams.length; i += 2) {
+        if (teams[i] && teams[i + 1]) {
+          fixtures.push([`${teams[i]} vs ${teams[i + 1]}`]);
+        }
+      }
+      return fixtures;
+    }
+  </script>
+</body>
+</html>
